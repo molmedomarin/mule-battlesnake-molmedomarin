@@ -22,7 +22,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
-      run: ./mvnw -ntpex -B package --file pom.xml -DskipMunitTests -DCLOUDHUB_APP_PREFIX=${CLOUDHUB_APP_PREFIX}
+      run: ./mvnw -ntp -e -x -B package --file pom.xml -DskipMunitTests -DCLOUDHUB_APP_PREFIX=${CLOUDHUB_APP_PREFIX}
     - name: Stamp artifact file name with commit hash
       run: |
         artifactName1=$(ls target/*.jar | head -1)
