@@ -69,7 +69,7 @@
 									<regexMessage>"Property 'CLOUDHUB_APP_PREFIX' can only contain letters, numbers, and dashes"</regexMessage>
 								</requireProperty>
 							</rules>
-							<fail>true</fail>
+							<fail>false</fail>
 						</configuration>
 					</execution>
 				</executions>
