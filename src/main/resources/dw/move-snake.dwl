@@ -19,6 +19,13 @@ var myNeckLocation = neck match {
 
 // TODO: Step 1 - Don't hit walls.
 // Use information from `board` and `head` to not move beyond the game board.
+var wallsLocation = head match {
+	case head if head.x == 0 -> "left"
+	case head if head.y == 0 -> "up"
+	case head if head.x == board.height -> "down"
+	case head if head.y == board.width -> "right"
+	else -> ''
+}
 
 // TODO: Step 2 - Don't hit yourself.
 // Use information from `body` to avoid moves that would collide with yourself.
@@ -32,7 +39,7 @@ var myNeckLocation = neck match {
 
 
 // Find safe moves by eliminating neck location and any other locations computed in above steps
-var safeMoves = moves - myNeckLocation // - remove other dangerous locations
+var safeMoves = moves - myNeckLocation - wallsLocation // - remove other dangerous locations
 
 // Next random move from safe moves
 var nextMove = safeMoves[randomInt(sizeOf(safeMoves))]
