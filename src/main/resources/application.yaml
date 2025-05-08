@@ -3,6 +3,6 @@ battlesnake:
     "apiversion": "1"
     "author": "molmedomarin"
     "color" : "#224466"
-    "head" : "default"
-    "tail" : "default"
+    "head" : "evil"
+    "tail" : "bolt"
     "version" : "0.0.1-beta"
