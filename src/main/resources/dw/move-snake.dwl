@@ -5,7 +5,7 @@ var body = payload.you.body
 var board = payload.board
 var head = body[0] // First body part is always head
 var neck = body[1] // Second body part is always neck
-var others = payload.board.snakes map ((sanke, snakeID) ->[sanke.body map ((item, index) -> [item.x, item.y])])
+var others = flatten(payload.board.snakes map ((sanke, snakeID) ->[sanke.body map ((item, index) -> [item.x, item.y])]))
 
 var moves ={"up":[0,1],
     "down":[0,-1],
@@ -34,7 +34,7 @@ var nextHeadLocation = moves mapObject
         )
 var bodyMoves = keysOf(
         nextHeadLocation filterObject ((value, key, index) ->
-            others contains ((value))
+            nextBodyLocation contains ((value))
         )
     ) map ((item, index) -> item as String)
 
@@ -45,11 +45,11 @@ var bodyMoves = keysOf(
 
 var otherCollision = keysOf(
         nextHeadLocation filterObject ((value, key, index) ->
-            nextBodyLocation contains ((value))
+            flatten(others) contains ((value))
         )
     ) map ((item, index) -> item as String)
 
-// TODO: Step 4 - Find food.
+// TODO : Step 4 - Find food.
 // Use information in `payload` to seek out and find food.
 // food = board.food
 
