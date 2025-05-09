@@ -48,7 +48,7 @@ var bodyMoves = keysOf(
 
 
 // Find safe moves by eliminating neck location and any other locations computed in above steps
-var safeMoves = keysOf(moves)
+var safeMoves = keysOf(nextHeadLocation)
     map ((item, index) -> (item) as String)
     filter ((item, index) ->!(bodyMoves contains(item)))
 
