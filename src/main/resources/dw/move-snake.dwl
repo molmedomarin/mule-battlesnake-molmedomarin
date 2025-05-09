@@ -6,29 +6,15 @@ var board = payload.board
 var head = body[0] // First body part is always head
 var neck = body[1] // Second body part is always neck
 
-var moves = ["up", "down", "left", "right"]
-var moves2 ={"up":[0,1],
+var moves ={"up":[0,1],
     "down":[0,-1],
     "left":[-1,0],
     "right":[1,0]}
 
 // Step 0: Find my neck location so I don't eat myself
-var myNeckLocation = neck match {
-	case neck if neck.x < head.x -> "left" //my neck is on the left of my head
-	case neck if neck.x > head.x -> "right" //my neck is on the right of my head
-	case neck if neck.y < head.y -> "down" //my neck is below my head
-	case neck if neck.y > head.y -> "up"	//my neck is above my head
-	else -> ''
-}
 
 // TODO: Step 1 - Don't hit walls.
 // Use information from `board` and `head` to not move beyond the game board.
-var wallsLocation = keysOf(
-    moves2 filterObject ((value, key, index) ->                                  (head.x + value[0]< 0) or
-                (head.x + value[0]> board.width) or
-                (head.y + value[1]< 0) or
-                (head.y + value[1]> board.height)
-)) map ((item, index) -> (item)as String)
 
 
 // TODO: Step 2 - Don't hit yourself.
@@ -36,13 +22,20 @@ var wallsLocation = keysOf(
 var nextBodyLocation = body map ((item, index) ->
     [item.x, item.y])
     filter ((item, index) -> index != sizeOf(body)-1)
-var nextHeadLocation = moves2 mapObject
+var nextHeadLocation = moves mapObject
     ((value, key,index) ->(key):
         (value) map ((item, i) ->(item)+ head[i])
-    )
-var bodyMoves = keysOf(nextHeadLocation filterObject ((value, key, index) ->
-        nextBodyLocation contains ((value))))
-        map ((item, index) -> (item)as String)
+    ) filterObject ((value, key, index) ->
+            (value[0]>=0)and
+            (value[0]<=board.width)and
+            (value[1]>=0)and
+            (value[1])<=board.height
+        )
+var bodyMoves = keysOf(
+        nextHeadLocation filterObject ((value, key, index) ->
+            nextBodyLocation contains ((value))
+        )
+    ) map ((item, index) -> item as String)
 
 
 
@@ -55,13 +48,9 @@ var bodyMoves = keysOf(nextHeadLocation filterObject ((value, key, index) ->
 
 
 // Find safe moves by eliminating neck location and any other locations computed in above steps
-var safeMoves = moves filter ((item, index) -> 
-            !(
-                (wallsLocation contains(item))
-                or (item == myNeckLocation)
-                or (bodyMoves contains(item))
-            )
-            )
+var safeMoves = keysOf(moves)
+    map ((item, index) -> (item) as String)
+    filter ((item, index) ->!(bodyMoves contains(item)))
 
 // Next random move from safe moves
 var nextMove = safeMoves[randomInt(sizeOf(safeMoves))]
