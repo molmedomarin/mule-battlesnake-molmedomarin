@@ -33,6 +33,18 @@ var wallsLocation = keysOf(
 
 // TODO: Step 2 - Don't hit yourself.
 // Use information from `body` to avoid moves that would collide with yourself.
+var nextBodyLocation = body map ((item, index) ->
+    [item.x, item.y])
+    filter ((item, index) -> index != sizeOf(body)-1)
+var nextHeadLocation = moves2 mapObject
+    ((value, key,index) ->(key):
+        (value) map ((item, i) ->(item)+ head[i])
+    )
+var bodyMoves = keysOf(nextHeadLocation filterObject ((value, key, index) ->
+        nextBodyLocation contains ((value))))
+        map ((item, index) -> (item)as String)
+
+
 
 // TODO: Step 3 - Don't collide with others.
 // Use information from `payload` to prevent your Battlesnake from colliding with others.
@@ -47,7 +59,9 @@ var safeMoves = moves filter ((item, index) ->
             !(
                 (wallsLocation contains(item))
                 or (item == myNeckLocation)
-            ))
+                or (bodyMoves contains(item))
+            )
+            )
 
 // Next random move from safe moves
 var nextMove = safeMoves[randomInt(sizeOf(safeMoves))]
