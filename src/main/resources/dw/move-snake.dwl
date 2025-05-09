@@ -6,11 +6,19 @@ var board = payload.board
 var head = body[0] // First body part is always head
 var neck = body[1] // Second body part is always neck
 var others = flatten(payload.board.snakes map ((sanke, snakeID) ->[sanke.body map ((item, index) -> [item.x, item.y])]))
+var foods = payload.board.food 
+    map ((item, index) ->[item.x, item.y] )
 
 var moves ={"up":[0,1],
     "down":[0,-1],
     "left":[-1,0],
     "right":[1,0]}
+
+fun closestTo(group, objective) =
+    group minBy ((item) ->
+        sqrt(((item[0]-objective[0])pow 2 )
+        + ((item[1]-objective[1])pow 2))
+    )
 
 // Step 0: Find my neck location so I don't eat myself
 
@@ -52,6 +60,9 @@ var otherCollision = keysOf(
 // TODO : Step 4 - Find food.
 // Use information in `payload` to seek out and find food.
 // food = board.food
+var closestFood = closestTo(foods,[head.x,head.y])
+
+    
 
 
 // Find safe moves by eliminating neck location and any other locations computed in above steps
@@ -65,10 +76,24 @@ var safeMoves = keysOf(nextHeadLocation)
     )
 
 // Next random move from safe moves
-var nextMove = safeMoves[randomInt(sizeOf(safeMoves))]
+
+
+var closestMove = closestTo(safeMoves map ((item, index) ->
+    nextHeadLocation[item]), closestFood)
+
+var foodMove = keysOf(
+        nextHeadLocation 
+            filterObject ((value, key,index)->
+            value == closestMove )
+    )[0]
+
+var nextMove = if (foodMove != null) foodMove else safeMoves[randomInt(sizeOf(safeMoves))]
+
 
 ---
 {
 	move: nextMove,
-	shout: "Moving $(nextMove)"
+	shout: "Moving $(nextMove)",
+    closest: closestFood,
+    foodMove: foodMove,
 }
