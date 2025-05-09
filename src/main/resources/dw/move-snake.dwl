@@ -5,6 +5,7 @@ var body = payload.you.body
 var board = payload.board
 var head = body[0] // First body part is always head
 var neck = body[1] // Second body part is always neck
+var others = payload.board.snakes map ((sanke, snakeID) ->[sanke.body map ((item, index) -> [item.x, item.y])])
 
 var moves ={"up":[0,1],
     "down":[0,-1],
@@ -33,7 +34,7 @@ var nextHeadLocation = moves mapObject
         )
 var bodyMoves = keysOf(
         nextHeadLocation filterObject ((value, key, index) ->
-            nextBodyLocation contains ((value))
+            others contains ((value))
         )
     ) map ((item, index) -> item as String)
 
@@ -41,6 +42,12 @@ var bodyMoves = keysOf(
 
 // TODO: Step 3 - Don't collide with others.
 // Use information from `payload` to prevent your Battlesnake from colliding with others.
+
+var otherCollision = keysOf(
+        nextHeadLocation filterObject ((value, key, index) ->
+            nextBodyLocation contains ((value))
+        )
+    ) map ((item, index) -> item as String)
 
 // TODO: Step 4 - Find food.
 // Use information in `payload` to seek out and find food.
@@ -50,7 +57,12 @@ var bodyMoves = keysOf(
 // Find safe moves by eliminating neck location and any other locations computed in above steps
 var safeMoves = keysOf(nextHeadLocation)
     map ((item, index) -> (item) as String)
-    filter ((item, index) ->!(bodyMoves contains(item)))
+    filter ((item, index) ->
+        !(
+            (bodyMoves contains(item) )or
+            (otherCollision contains(item))
+        )
+    )
 
 // Next random move from safe moves
 var nextMove = safeMoves[randomInt(sizeOf(safeMoves))]
