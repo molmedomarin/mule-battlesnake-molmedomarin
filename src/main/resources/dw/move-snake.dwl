@@ -7,6 +7,10 @@ var head = body[0] // First body part is always head
 var neck = body[1] // Second body part is always neck
 
 var moves = ["up", "down", "left", "right"]
+var moves2 ={"up":[0,1],
+    "down":[0,-1],
+    "left":[-1,0],
+    "right":[1,0]}
 
 // Step 0: Find my neck location so I don't eat myself
 var myNeckLocation = neck match {
@@ -19,13 +23,13 @@ var myNeckLocation = neck match {
 
 // TODO: Step 1 - Don't hit walls.
 // Use information from `board` and `head` to not move beyond the game board.
-var wallsLocation = head match {
-	case head if head.x == 0 -> "left"
-	case head if head.y == 0 -> "up"
-	case head if head.x == board.height -> "down"
-	case head if head.y == board.width -> "right"
-	else -> ''
-}
+var wallsLocation = keysOf(
+    moves2 filterObject ((value, key, index) ->                                  (head.x + value[0]< 0) or
+                (head.x + value[0]> board.width) or
+                (head.y + value[1]< 0) or
+                (head.y + value[1]> board.height)
+)) map ((item, index) -> (item)as String)
+
 
 // TODO: Step 2 - Don't hit yourself.
 // Use information from `body` to avoid moves that would collide with yourself.
@@ -39,7 +43,11 @@ var wallsLocation = head match {
 
 
 // Find safe moves by eliminating neck location and any other locations computed in above steps
-var safeMoves = moves - myNeckLocation - wallsLocation // - remove other dangerous locations
+var safeMoves = moves filter ((item, index) -> 
+            !(
+                (wallsLocation contains(item))
+                or (item == myNeckLocation)
+            ))
 
 // Next random move from safe moves
 var nextMove = safeMoves[randomInt(sizeOf(safeMoves))]
