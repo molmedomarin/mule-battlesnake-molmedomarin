@@ -1,11 +1,17 @@
 %dw 2.0
+import * from dw::core::Arrays
 output application/json
 
 var body = payload.you.body
 var board = payload.board
 var head = body[0] // First body part is always head
 var neck = body[1] // Second body part is always neck
-var others = flatten(payload.board.snakes map ((sanke, snakeID) ->[sanke.body map ((item, index) -> [item.x, item.y])]))
+var others = flatten(payload.board.snakes
+	filter (
+		(item, index) -> item.id != payload.you.id
+	)
+	map ((sanke, snakeID) ->[sanke.body map ((item, index) -> [item.x, item.y])])
+)
 var foods = payload.board.food 
     map ((item, index) ->[item.x, item.y] )
 
@@ -19,6 +25,10 @@ fun closestTo(group, objective) =
         sqrt(((item[0]-objective[0])pow 2 )
         + ((item[1]-objective[1])pow 2))
     )
+    
+fun nextHead(head) =
+    valuesOf(moves) map ((item, index) -> [head[0] + item[0], head[1] + item[1]])
+
 
 // Step 0: Find my neck location so I don't eat myself
 
@@ -35,10 +45,8 @@ var nextHeadLocation = moves mapObject
     ((value, key,index) ->(key):
         (value) map ((item, i) ->(item)+ head[i])
     ) filterObject ((value, key, index) ->
-            (value[0]>=0)and
-            (value[0]<=board.width)and
-            (value[1]>=0)and
-            (value[1])<=board.height
+            (0 to board.width contains(value[0]))and
+            (0 to board.height contains(value[1]))
         )
 var bodyMoves = keysOf(
         nextHeadLocation filterObject ((value, key, index) ->
@@ -57,21 +65,46 @@ var otherCollision = keysOf(
         )
     ) map ((item, index) -> item as String)
 
+
+var possibleCollisions = others map (
+    (item, index) ->
+    keysOf(nextHeadLocation 
+        filterObject ((value, key, index) -> 
+            nextHead(item[0]) contains  (value)
+        )
+    )
+    map((item, index) -> item as String)
+)
+
+var sortedCollisions = possibleCollisions groupBy ((item, index) -> sizeOf(body)>sizeOf(others[index]))
+
+var unsafeHeadCollisions = flatten(valuesOf(sortedCollisions
+    filterObject((value, key, index) -> key as String == "false")
+)map ((item, index) -> flatten(item)))
+
+var killMoves = flatten(valuesOf(sortedCollisions
+    filterObject((value, key, index) -> key as String == "true")
+)map ((item, index) -> flatten(item)))
+
+
+
+
 // TODO : Step 4 - Find food.
 // Use information in `payload` to seek out and find food.
 // food = board.food
 var closestFood = closestTo(foods,[head.x,head.y])
 
-    
 
 
 // Find safe moves by eliminating neck location and any other locations computed in above steps
+
 var safeMoves = keysOf(nextHeadLocation)
     map ((item, index) -> (item) as String)
     filter ((item, index) ->
         !(
             (bodyMoves contains(item) )or
-            (otherCollision contains(item))
+            (otherCollision contains(item))or
+            (unsafeHeadCollisions contains(item))
         )
     )
 
@@ -87,13 +120,13 @@ var foodMove = keysOf(
             value == closestMove )
     )[0]
 
-var nextMove = if (foodMove != null) foodMove else safeMoves[randomInt(sizeOf(safeMoves))]
-
+var nextMove = 
+    if (!isEmpty(killMoves)) killMoves[randomInt(sizeOf(killMoves))]
+    else if (foodMove != null) foodMove
+    else safeMoves[randomInt(sizeOf(safeMoves))]
 
 ---
 {
 	move: nextMove,
-	shout: "Moving $(nextMove)",
-    closest: closestFood,
-    foodMove: foodMove,
+	shout: "Moving $(nextMove)"
 }
