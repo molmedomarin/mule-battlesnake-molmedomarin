@@ -82,9 +82,7 @@ var unsafeHeadCollisions = flatten(valuesOf(sortedCollisions
     filterObject((value, key, index) -> key as String == "false")
 )map ((item, index) -> flatten(item)))
 
-var killMoves = flatten(valuesOf(sortedCollisions
-    filterObject((value, key, index) -> key as String == "true")
-)map ((item, index) -> flatten(item)))
+
 
 
 
@@ -108,6 +106,10 @@ var safeMoves = keysOf(nextHeadLocation)
         )
     )
 
+var killMoves = flatten(valuesOf(sortedCollisions
+    filterObject((value, key, index) -> key as String == "true")
+)map ((item, index) -> flatten(item))) filter ((item, index) -> safeMoves contains(item))
+
 // Next random move from safe moves
 
 
@@ -128,5 +130,7 @@ var nextMove =
 ---
 {
 	move: nextMove,
-	shout: "Moving $(nextMove)"
+	shout: "Moving $(nextMove)",
+    "killMoves": killMoves,
+    "safe": safeMoves
 }
