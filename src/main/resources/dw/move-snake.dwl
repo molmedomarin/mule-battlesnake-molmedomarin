@@ -160,7 +160,9 @@ var closestMove = closestTo(safeMoves map ((item, index) ->
 var foodMove = keysOf(
         nextHeadLocation 
             filterObject ((value, key,index)->
-            value == closestMove )
+            (value == closestMove ) and
+            (safeMoves contains(key as String)) 
+            )
     )[0]
 
 //calculate next move
@@ -173,6 +175,5 @@ var nextMove =
 ---
 {
 	move: nextMove,
-	shout: "Moving $(nextMove)",
-    "debug": sortedCollisions
+	shout: "Moving $(nextMove)"
 }
