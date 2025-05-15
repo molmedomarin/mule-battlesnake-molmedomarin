@@ -2,9 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>f410b1b4-6203-4154-a14a-d77dd6823489</groupId>
+	<groupId>com.javastreets</groupId>
 	<artifactId>mule-battlesnake-molmedomarin</artifactId>
-	<version>1.0.14</version>
+	<version>1.0.0</version>
 	<packaging>mule-application</packaging>
 
 	<name>mule-battlesnake-starter</name>
@@ -47,7 +47,7 @@
 						<applyLatestRuntimePatch>true</applyLatestRuntimePatch>
 						<objectStoreV2>true</objectStoreV2>
 					</cloudHubDeployment>
-					<classifier>mule-application</classifier>
+					<classifier>---- select project type ----</classifier>
 				</configuration>
 			</plugin>
 			<plugin>
