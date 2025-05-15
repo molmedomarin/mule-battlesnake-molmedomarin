@@ -81,9 +81,10 @@ var nextHeadLocation = moves mapObject
     ((value, key,index) ->(key):
         (value) map ((item, i) ->(item)+ head[i])
     ) filterObject ((value, key, index) ->
-            (0 to board.width contains(value[0]))and
-            (0 to board.height contains(value[1]))
+            (0 to (board.width-1) contains(value[0]))and
+            (0 to (board.height-1) contains(value[1]))
         )
+        
 /*array that contains the moves that will collide with the body, ex:
     ["up","down"]*/  
 var bodyMoves = keysOf(
