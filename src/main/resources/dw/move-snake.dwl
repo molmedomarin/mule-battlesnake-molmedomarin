@@ -119,7 +119,7 @@ var possibleCollisions = others map (
     }
     where true means that the my snake is bigger than the other snake
 */
-var sortedCollisions = possibleCollisions groupBy ((item, index) -> sizeOf(body)>sizeOf(others[index]))
+var sortedCollisions = possibleCollisions groupBy ((item, index) -> sizeOf(body)>sizeOf(others[index])+1)
 
 //array of moves that could collide with the head of a bigger snakein the next turn
 var unsafeHeadCollisions = flatten(valuesOf(sortedCollisions
