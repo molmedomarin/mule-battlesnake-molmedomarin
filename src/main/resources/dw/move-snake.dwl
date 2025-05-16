@@ -84,7 +84,6 @@ var nextHeadLocation = moves mapObject
             (0 to (board.width-1) contains(value[0]))and
             (0 to (board.height-1) contains(value[1]))
         )
-        
 /*array that contains the moves that will collide with the body, ex:
     ["up","down"]*/  
 var bodyMoves = keysOf(
@@ -166,6 +165,84 @@ var foodMove = keysOf(
             )
     )[0]
 
+//generate a graph of the board
+fun getNextOccupied(head) =
+    flatten(others + nextBodyLocation + [[head[0],head[1]]])
+fun createGraph(occupiedNodes) =
+    do{
+        var nodes = flatten(0 to board.width-1 map((w, wID) ->
+            0 to board.width-1 map((h, hID) ->
+                [w,h]
+            )
+        ))filter ((item, index) -> !(occupiedNodes contains(item)))
+
+        var edges = flatten(nodes map ((node, eID) ->
+            valuesOf(moves) map((move,moveID)->
+                [
+                    node,
+                    [node[0] + move[0], node[1] + move[1]]
+                ]
+            )
+            filter ((item, index) -> 
+                (0 to (board.width-1) contains(item[1][0]))and
+                (0 to (board.height-1) contains(item[1][1])) and
+                !(occupiedNodes contains(item[1]) )
+            )map ((item, index) -> 
+                item orderBy((i) -> i[0] + i[1])
+            )
+        ))distinctBy ((item, index) -> item)
+        ---
+        {
+            "nodes": nodes,
+            "edges": edges
+        }
+    }
+
+//metod that returns the neighbours of a node given a graph
+fun findNeighbours(node, graph)=
+    flatten(
+        graph.edges filter ((item, index) ->
+        (item[0] == node) or 
+        (item[1] == node)
+    )
+    map ((edge, edgeID) -> edge filter ((filterNode, fID) -> node != filterNode)
+    )
+)
+
+fun findRegion(node, graph, region) =
+    do{
+        var newNodes = (findNeighbours(node, graph) +node) filter ((item, index) -> !(region contains(item)))
+        var newRegion = region ++ newNodes
+        ---
+        if(isEmpty(newNodes))
+            region
+        else
+            flatten(
+                newNodes map ((item, index) -> 
+                    findRegion(item, graph, newRegion)
+                )
+            )
+            distinctBy ((item, index) -> item)
+             
+    }
+
+fun getRegions(graph)=
+    do{
+        var nodes = graph.nodes
+        var construct = nodes reduce ((item, acc=[]) ->
+            if(flatten(acc) contains item)
+                acc
+            else
+                acc ++ [findRegion(item, graph, [])]
+        
+        )
+    
+        ---
+         
+        construct
+    }
+
+
 //calculate next move
 var nextMove = 
     if (!isEmpty(killMoves)) killMoves[randomInt(sizeOf(killMoves))]
@@ -173,8 +250,16 @@ var nextMove =
     else if (safeMoves == null) unsafeMoves[randomInt(sizeOf(unsafeMoves))]
     else safeMoves[randomInt(sizeOf(safeMoves))]
 
+
+var graph = createGraph(getNextOccupied([0,1]))
+
 ---
 {
-	move: nextMove,
-	shout: "Moving $(nextMove)"
+	//move: nextMove,
+	//shout: "Moving $(nextMove)",
+    debug: {
+        "aa":"a",
+        "check": sizeOf(getRegions(graph)[1])
+    }
+
 }
