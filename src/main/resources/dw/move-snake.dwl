@@ -157,13 +157,13 @@ var closestFood = closestTo(foods,[head.x,head.y])
 var closestMove = closestTo(safeMoves map ((item, index) ->
     nextHeadLocation[item]), closestFood)
 
-var foodMove = keysOf(
+var foodMoves = keysOf(
         nextHeadLocation 
             filterObject ((value, key,index)->
             (value == closestMove ) and
             (safeMoves contains(key as String)) 
             )
-    )[0]
+    )
 
 //generate a graph of the board
 fun getNextOccupied(head) =
@@ -242,24 +242,28 @@ fun getRegions(graph)=
         construct
     }
 
+var graph = createGraph(getNextOccupied(head))    
+
+fun sortMoves(moves) =
+    moves orderBy((item, index) ->
+        sizeOf(findRegion(nextHeadLocation[item], graph, []))
+    )filter ((item, index) ->
+        sizeOf(findRegion(nextHeadLocation[item], graph, []))> sizeOf(body)
+    )
 
 //calculate next move
 var nextMove = 
-    if (!isEmpty(killMoves)) killMoves[randomInt(sizeOf(killMoves))]
-    else if (foodMove != null) foodMove
-    else if (safeMoves == null) unsafeMoves[randomInt(sizeOf(unsafeMoves))]
-    else safeMoves[randomInt(sizeOf(safeMoves))]
+    if (!isEmpty(sortMoves(killMoves))) sortMoves(killMoves)[0]
+    else if (!(isEmpty(sortMoves(foodMoves)))) sortMoves(foodMoves)[0]
+    else if (safeMoves == null)  sortMoves(unsafeMoves)[0]
+    else sortMoves(safeMoves)[0]
 
 
-var graph = createGraph(getNextOccupied([0,1]))
+
 
 ---
 {
-	//move: nextMove,
-	//shout: "Moving $(nextMove)",
-    debug: {
-        "aa":"a",
-        "check": sizeOf(getRegions(graph)[1])
-    }
+	move: nextMove,
+	shout: "Moving $(nextMove)",
 
 }
