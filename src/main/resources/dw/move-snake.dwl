@@ -27,6 +27,7 @@ var others = flatten(payload.board.snakes
         
     )
 )
+
 //array that contains the coordinates of all foods in the board
 var foods = payload.board.food 
     map ((item, index) ->[item.x, item.y] )
@@ -76,29 +77,18 @@ var nextBodyLocation = body map ((item, index) ->
     take(sizeOf(body)-1)
 
 /*create a map with each possible move and where the head will be placed if taken
-    {"up":[x0,y1],"down":[x0,y2],"left":[x1,y0],"right":[x2,y0]}*/
+    {"up":[x0,y1],"down":[x0,y2],"left":[x1,y0],"right":[x2,y0]}
+    Excluding values that will result in a collision with the body of any snake
+*/
 var nextHeadLocation = moves mapObject
     ((value, key,index) ->(key):
         (value) map ((item, i) ->(item)+ head[i])
     ) filterObject ((value, key, index) ->
             (0 to (board.width-1) contains(value[0]))and
-            (0 to (board.height-1) contains(value[1]))
-        )
-/*array that contains the moves that will collide with the body, ex:
-    ["up","down"]*/  
-var bodyMoves = keysOf(
-        nextHeadLocation filterObject ((value, key, index) ->
-            nextBodyLocation contains ((value))
-        )
-    ) map ((item, index) -> item as String)
-
-/*array that contains the moves that will collide with the body of any other snake, ex:
-    ["up","down"]*/  
-var otherCollision = keysOf(
-        nextHeadLocation filterObject ((value, key, index) ->
-            flatten(others) contains ((value))
-        )
-    ) map ((item, index) -> item as String)
+            (0 to (board.height-1) contains(value[1]))and
+            !(nextBodyLocation contains(value))and
+            !(flatten(others) contains(value))
+    )
 
 //array of moves that could collide with the head of a snake in the next turn
 //ex: ["up","down"]
@@ -130,12 +120,6 @@ var unsafeHeadCollisions = flatten(valuesOf(sortedCollisions
 //Group the possible moves by their safety
 var sortedMoves =  keysOf(nextHeadLocation)
     map ((item, index) -> (item) as String)
-    filter ((item, index) ->
-        !(
-            (bodyMoves contains(item) )or
-            (otherCollision contains(item))
-        )
-    )
     groupBy ((item, index) -> !(unsafeHeadCollisions contains(item)))
 
 
@@ -154,15 +138,15 @@ var killMoves = flatten(valuesOf(sortedCollisions
 choose the first in the array*/
 var closestFood = closestTo(foods,[head.x,head.y])
 
-var closestMove = closestTo(safeMoves map ((item, index) ->
-    nextHeadLocation[item]), closestFood)
+
 
 var foodMoves = keysOf(
         nextHeadLocation 
             filterObject ((value, key,index)->
-            (value == closestMove ) and
             (safeMoves contains(key as String)) 
             )
+            orderBy ((value, key) -> sqrt(((value[0]-closestFood[0])pow 2 )
+        + ((value[1]-closestFood[1])pow 2)))
     )
 
 //generate a graph of the board
@@ -254,16 +238,17 @@ fun sortMoves(moves) =
 //calculate next move
 var nextMove = 
     if (!isEmpty(sortMoves(killMoves))) sortMoves(killMoves)[0]
-    else if (!(isEmpty(sortMoves(foodMoves)))) sortMoves(foodMoves)[0]
+    else if (!(isEmpty(sortMoves(foodMoves))))
+        if(sizeOf(getRegions(graph))>1)
+            sortMoves(foodMoves)[0]
+        else
+            foodMoves[0]
     else if (safeMoves == null)  sortMoves(unsafeMoves)[0]
     else sortMoves(safeMoves)[0]
-
-
 
 
 ---
 {
 	move: nextMove,
-	shout: "Moving $(nextMove)",
-
+	shout: "Moving $(nextMove)"
 }
